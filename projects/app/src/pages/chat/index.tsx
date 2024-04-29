@@ -37,6 +37,7 @@ import { checkChatSupportSelectFileByChatModels } from '@/web/core/chat/utils';
 import { getChatTitleFromChatMessage } from '@fastgpt/global/core/chat/utils';
 import { ChatStatusEnum } from '@fastgpt/global/core/chat/constants';
 import { GPTMessages2Chats } from '@fastgpt/global/core/chat/adapt';
+import { ImageFetch } from '@/web/common/api/imageFetch';
 
 const Chat = ({ appId, chatId }: { appId: string; chatId: string }) => {
   const router = useRouter();
@@ -73,8 +74,8 @@ const Chat = ({ appId, chatId }: { appId: string; chatId: string }) => {
     async ({ messages, controller, generatingMessage, variables }: StartChatFnProps) => {
       const prompts = messages.slice(-2);
       const completionChatId = chatId ? chatId : nanoid();
-
-      const { responseText, responseData } = await streamFetch({
+      const res = await getInitChatInfo({ appId, chatId });
+      let data: any = {
         data: {
           messages: prompts,
           variables,
@@ -83,8 +84,11 @@ const Chat = ({ appId, chatId }: { appId: string; chatId: string }) => {
         },
         onMessage: generatingMessage,
         abortSignal: controller
-      });
-
+      };
+      const { responseText, responseData } =
+        res.app.chatModels?.length == 1 && res.app.chatModels.includes('dall-e-3')
+          ? await ImageFetch(data)
+          : await streamFetch(data);
       const newTitle = getChatTitleFromChatMessage(GPTMessages2Chats(prompts)[0]);
 
       // new chat
