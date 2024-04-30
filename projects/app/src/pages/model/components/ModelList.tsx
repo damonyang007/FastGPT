@@ -25,9 +25,8 @@ import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { AppListItemType } from '@fastgpt/global/core/app/type.d';
 import ChatBox from '@/components/ChatBox';
 import type { ComponentRef, StartChatFnProps } from '@/components/ChatBox/type.d';
-import { getGuideModule } from '@fastgpt/global/core/module/utils';
+import { getGuideModule } from '@fastgpt/global/core/workflow/utils';
 import { ModuleItemType } from '@fastgpt/global/core/module/type';
-import { ModuleInputKeyEnum } from '@fastgpt/global/core/module/constants';
 import { streamFetch } from '@/web/common/api/fetch';
 import { checkChatSupportSelectFileByModules } from '@/web/core/chat/utils';
 import { ModelType } from '@fastgpt/global/support/permission/constant';
@@ -60,22 +59,11 @@ const ModelList = () => {
       let data: any = {
         data: {
           messages: prompts,
-          variables,
+          variables
         },
         onMessage: generatingMessage,
         abortSignal: controller
       };
-      modules.forEach((module) => {
-        module.inputs.forEach((input) => {
-          if (
-            (input.key === ModuleInputKeyEnum.history ||
-              input.key === ModuleInputKeyEnum.historyMaxAmount) &&
-            typeof input.value === 'number'
-          ) {
-            historyMaxLen = Math.max(historyMaxLen, input.value);
-          }
-        });
-      });
       const history = chatList.slice(-historyMaxLen - 2, -2);
 
       // 流请求，获取数据
@@ -83,17 +71,17 @@ const ModelList = () => {
         res.app.chatModels?.length == 1 && res.app.chatModels.includes('dall-e-3')
           ? await ImageFetch(data)
           : await streamFetch({
-            url: '/api/core/chat/chatTest',
-            data: {
-              history,
-              prompt: chatList[chatList.length - 2].value,
-              modules,
-              variables,
-              appName: `调试-${appDetail.name}`
-            },
-            onMessage: generatingMessage,
-            abortSignal: controller
-          });
+              url: '/api/core/chat/chatTest',
+              data: {
+                history,
+                prompt: chatList[chatList.length - 2].value,
+                modules,
+                variables,
+                appName: `调试-${appDetail.name}`
+              },
+              onMessage: generatingMessage,
+              abortCtrl: controller
+            });
 
       return { responseText, responseData };
     },
@@ -167,11 +155,11 @@ const ModelList = () => {
                     router.push(`/chat?appId=${app._id}`);
                   }
                 }}
-              // onClick={() => {
-              //   getAppDetail(app._id);
-              //   setAppCard(app);
-              //   onOpenSlider();
-              // }}
+                // onClick={() => {
+                //   getAppDetail(app._id);
+                //   setAppCard(app);
+                //   onOpenSlider();
+                // }}
               >
                 <Flex alignItems={'center'} h={'38px'}>
                   <Avatar src={app.avatar} borderRadius={'md'} w={'28px'} />
@@ -257,7 +245,7 @@ const ModelList = () => {
               userGuideModule={getGuideModule(modules)}
               showFileSelector={checkChatSupportSelectFileByModules(modules)}
               onStartChat={startChat}
-              onDelMessage={() => { }}
+              onDelMessage={() => {}}
             />
           </DrawerBody>
         </DrawerContent>

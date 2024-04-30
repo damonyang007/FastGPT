@@ -35,7 +35,7 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import MyModal from '@fastgpt/web/components/common/MyModal';
 import { useForm } from 'react-hook-form';
 import { useRequest } from '@fastgpt/web/hooks/useRequest';
-import MyMenu from '@/components/MyMenu';
+import MyMenu from '@fastgpt/web/components/common/MyMenu';
 import { UserStatusEnum, userStatusMap } from '@fastgpt/global/support/user/constant';
 
 const defaultEditData: any = {

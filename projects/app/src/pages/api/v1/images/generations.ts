@@ -3,13 +3,17 @@ import { authApp } from '@fastgpt/service/support/permission/auth/app';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
 import { sseErrRes, jsonRes } from '@fastgpt/service/common/response';
 import { addLog } from '@fastgpt/service/common/system/log';
-import { withNextCors } from '@fastgpt/service/common/middle/cors';
 import { ChatRoleEnum, ChatSourceEnum } from '@fastgpt/global/core/chat/constants';
-import { SseResponseEventEnum } from '@fastgpt/global/core/module/runtime/constants';
+import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { dispatchWorkFlow } from '@fastgpt/service/core/workflow/dispatch';
 import type { ChatCompletionCreateParams } from '@fastgpt/global/core/ai/type.d';
 import type { ChatCompletionMessageParam } from '@fastgpt/global/core/ai/type.d';
-import { textAdaptGptResponse } from '@fastgpt/global/core/module/runtime/utils';
+import {
+  getDefaultEntryNodeIds,
+  initWorkflowEdgeStatus,
+  storeNodes2RuntimeNodes,
+  textAdaptGptResponse
+} from '@fastgpt/global/core/workflow/runtime/utils';
 import { GPTMessages2Chats, chatValue2RuntimePrompt } from '@fastgpt/global/core/chat/adapt';
 import { getChatItems } from '@fastgpt/service/core/chat/controller';
 import { saveChat } from '@/service/utils/chat/saveChat';
@@ -32,12 +36,11 @@ import { AuthOutLinkChatProps } from '@fastgpt/global/support/outLink/api';
 import { MongoChat } from '@fastgpt/service/core/chat/chatSchema';
 import { ChatErrEnum } from '@fastgpt/global/common/error/code/chat';
 import { OutLinkChatAuthProps } from '@fastgpt/global/support/permission/chat';
-import { setEntryEntries } from '@fastgpt/service/core/workflow/dispatch/utils';
 import { UserChatItemType } from '@fastgpt/global/core/chat/type';
-import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/module/runtime/constants';
+import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { getAIApi } from '@fastgpt/service/core/ai/config';
 import { uploadMongoImg } from '@fastgpt/service/common/file/image/controller';
-
+import { setEntryEntries } from '@fastgpt/service/core/workflow/dispatchV1/utils';
 type FastGptWebChatProps = {
   chatId?: string; // undefined: nonuse history, '': new chat, 'xxxxx': use history
   appId?: string;
@@ -175,6 +178,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     ];
+    const source = (() => {
+      if (shareId) {
+        return ChatSourceEnum.share;
+      }
+      if (authType === 'apikey') {
+        return ChatSourceEnum.api;
+      }
+      if (spaceTeamId) {
+        return ChatSourceEnum.team;
+      }
+      return ChatSourceEnum.online;
+    })();
 
     const time = Date.now();
     let flowResponses: any[] = [
@@ -208,21 +223,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         teamId,
         tmbId: tmbId,
         variables,
-        updateUseTime: isOwnerUse, // owner update use time
+        isUpdateUseTime: isOwnerUse && source === ChatSourceEnum.online, // owner update use time
         shareId,
         outLinkUid: outLinkUserId,
-        source: (() => {
-          if (shareId) {
-            return ChatSourceEnum.share;
-          }
-          if (authType === 'apikey') {
-            return ChatSourceEnum.api;
-          }
-          if (spaceTeamId) {
-            return ChatSourceEnum.team;
-          }
-          return ChatSourceEnum.online;
-        })(),
+        source,
         content: [
           question,
           {

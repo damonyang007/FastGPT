@@ -1,9 +1,9 @@
-import { SseResponseEventEnum } from '@fastgpt/global/core/module/runtime/constants';
+import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { getErrText } from '@fastgpt/global/common/error/utils';
 import type { ChatHistoryItemResType } from '@fastgpt/global/core/chat/type.d';
 import type { StartChatFnProps } from '@/components/ChatBox/type.d';
 import { getToken } from '@/web/support/user/auth';
-import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/module/runtime/constants';
+import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import dayjs from 'dayjs';
 import {
   // refer to https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web
@@ -17,7 +17,7 @@ type StreamFetchProps = {
   url?: string;
   data: Record<string, any>;
   onMessage: StartChatFnProps['generatingMessage'];
-  abortSignal: AbortController;
+  abortCtrl: AbortController;
 };
 type StreamResponseType = {
   responseText: string;
@@ -29,11 +29,11 @@ export const streamFetch = ({
   url = '/api/v1/chat/completions',
   data,
   onMessage,
-  abortSignal
+  abortCtrl
 }: StreamFetchProps) =>
   new Promise<StreamResponseType>(async (resolve, reject) => {
     const timeoutId = setTimeout(() => {
-      abortSignal.abort('Time out');
+      abortCtrl.abort('Time out');
     }, 60000);
 
     // response data
@@ -74,7 +74,7 @@ export const streamFetch = ({
     // animate response to make it looks smooth
     function animateResponseText() {
       // abort message
-      if (abortSignal.signal.aborted) {
+      if (abortCtrl.signal.aborted) {
         responseQueue.forEach((item) => {
           onMessage(item);
           if (isAnswerEvent(item.event)) {
@@ -109,7 +109,7 @@ export const streamFetch = ({
     try {
       // auto complete variables
       const variables = data?.variables || {};
-      variables.cTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
+      variables.cTime = dayjs().format('YYYY-MM-DD HH:mm:ss dddd');
 
       const requestData = {
         method: 'POST',
@@ -117,7 +117,7 @@ export const streamFetch = ({
           'Content-Type': 'application/json',
           token: getToken()
         },
-        signal: abortSignal.signal,
+        signal: abortCtrl.signal,
         body: JSON.stringify({
           ...data,
           variables,
@@ -220,7 +220,7 @@ export const streamFetch = ({
     } catch (err: any) {
       clearTimeout(timeoutId);
 
-      if (abortSignal.signal.aborted) {
+      if (abortCtrl.signal.aborted) {
         finished = true;
 
         return;

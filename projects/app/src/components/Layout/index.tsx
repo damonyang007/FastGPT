@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Box, useColorMode, Flex, calc } from '@chakra-ui/react';
+import { Box, useColorMode, Flex } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useLoading } from '@fastgpt/web/hooks/useLoading';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
@@ -13,10 +13,10 @@ import { getTokenLogin } from '@/web/support/user/api';
 import { getToken } from '@/web/support/user/auth';
 
 import Auth from './auth';
-import Navbar from './navbar';
-import NavbarPhone from './navbarPhone';
 import NavbarPhoneHome from './navbarPhoneHome';
 import HomePage from '@/pages/home/index';
+const Navbar = dynamic(() => import('./navbar'));
+const NavbarPhone = dynamic(() => import('./navbarPhone'));
 const UpdateInviteModal = dynamic(() => import('@/components/support/user/team/UpdateInviteModal'));
 const NotSufficientModal = dynamic(() => import('@/components/support/wallet/NotSufficientModal'));
 const SystemMsgModal = dynamic(() => import('@/components/support/user/inform/SystemMsgModal'));
@@ -105,6 +105,7 @@ const Layout = ({ children }: { children: JSX.Element }) => {
     }
   }, [colorMode, router.pathname, setColorMode]);
 
+  // listen screen width
   useEffect(() => {
     const resize = throttle(() => {
       setScreenWidth(document.documentElement.clientWidth);

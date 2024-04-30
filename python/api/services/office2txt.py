@@ -4,7 +4,13 @@ from aip import AipOcr
 from io import BytesIO
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
+from dotenv import load_dotenv
 
+# 指定.env.local文件的路径
+dotenv_path = os.path.join('projects', 'app', '.env.local')
+
+# 加载.env.local文件
+load_dotenv(dotenv_path)
 
 # 百度OCR API设置
 APP_ID = os.environ.get('APP_ID','xxx')

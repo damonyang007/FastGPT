@@ -4,7 +4,6 @@ import { ModelType, AppSortType } from '@fastgpt/global/support/permission/const
 
 export const defaultApp: AppDetailType = {
   _id: '',
-  userId: 'userId',
   name: '应用加载中',
   type: 'simple',
   avatar: '/icon/logo.svg',
@@ -18,7 +17,9 @@ export const defaultApp: AppDetailType = {
   canWrite: false,
   teamTags: [''],
   isShow: ModelType.MINE,
-  appType: AppSortType.PERSON
+  appType: AppSortType.PERSON,
+  edges: [],
+  version: 'v2'
 };
 
 export const defaultOutLinkForm: OutLinkEditType = {

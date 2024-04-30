@@ -84,7 +84,7 @@ const Chat = ({ appId, chatId }: { appId: string; chatId: string }) => {
           chatId: completionChatId
         },
         onMessage: generatingMessage,
-        abortSignal: controller
+        abortCtrl: controller
       };
       const { responseText, responseData } =
         res.app.chatModels?.length == 1 && res.app.chatModels.includes('dall-e-3')

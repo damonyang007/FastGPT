@@ -232,7 +232,7 @@ const MyInfo = () => {
                 if (val === userInfo?.team?.memberName) return;
                 try {
                   putUpdateMemberName(val);
-                } catch (error) { }
+                } catch (error) {}
               }}
             />
           </Flex>
@@ -599,7 +599,7 @@ const Other = () => {
             userSelect={'none'}
             onClick={onOpenLaf}
           >
-            <Image src="/imgs/module/laf.png" w={'18px'} alt="laf" />
+            <Image src="/imgs/workflow/laf.png" w={'18px'} alt="laf" />
             <Box ml={2} flex={1}>
               laf 账号
             </Box>

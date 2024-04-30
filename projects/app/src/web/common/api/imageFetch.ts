@@ -1,16 +1,16 @@
-import { SseResponseEventEnum } from '@fastgpt/global/core/module/runtime/constants';
+import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { getErrText } from '@fastgpt/global/common/error/utils';
 import type { ChatHistoryItemResType } from '@fastgpt/global/core/chat/type.d';
 import type { StartChatFnProps } from '@/components/ChatBox/type.d';
 import { getToken } from '@/web/support/user/auth';
-import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/module/runtime/constants';
+import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import dayjs from 'dayjs';
 
 type ImageFetchProps = {
   url?: string;
   data: Record<string, any>;
   onMessage: StartChatFnProps['generatingMessage'];
-  abortSignal: AbortController;
+  abortCtrl: AbortController;
 };
 type ImageResponseType = {
   responseText: string;
@@ -22,11 +22,11 @@ export const ImageFetch = ({
   url = '/api/v1/images/generations',
   data,
   onMessage,
-  abortSignal
+  abortCtrl
 }: ImageFetchProps) =>
   new Promise<ImageResponseType>(async (resolve, reject) => {
     const timeoutId = setTimeout(() => {
-      abortSignal.abort('Time out');
+      abortCtrl.abort('Time out');
     }, 60000);
 
     // response data
@@ -65,7 +65,7 @@ export const ImageFetch = ({
       event === SseResponseEventEnum.answer || event === SseResponseEventEnum.fastAnswer;
 
     function animateResponseText() {
-      if (abortSignal.signal.aborted) {
+      if (abortCtrl.signal.aborted) {
         responseQueue.forEach((item) => {
           onMessage(item);
           if (isAnswerEvent(item.event)) {
@@ -104,7 +104,7 @@ export const ImageFetch = ({
           'Content-Type': 'application/json',
           token: getToken()
         },
-        signal: abortSignal.signal,
+        signal: abortCtrl.signal,
         body: JSON.stringify({
           ...data,
           variables
@@ -138,7 +138,7 @@ export const ImageFetch = ({
     } catch (err: any) {
       clearTimeout(timeoutId);
 
-      if (abortSignal.signal.aborted) {
+      if (abortCtrl.signal.aborted) {
         finished = true;
 
         return;
