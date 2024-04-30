@@ -84,6 +84,17 @@ const OutLink = ({
     async ({ messages, controller, generatingMessage, variables }: StartChatFnProps) => {
       const prompts = messages.slice(-2);
       const completionChatId = chatId ? chatId : nanoid();
+
+      //post message to report chat start
+      window.top?.postMessage(
+        {
+          type: 'shareChatStart',
+          data: {
+            question: prompts[0]?.content
+          }
+        },
+        '*'
+      );
       const res = await getInitChatInfo({ appId, chatId });
       let data: any = {
         data: {
