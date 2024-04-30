@@ -15,9 +15,9 @@ export const defaultApp: AppDetailType = {
   permission: 'private',
   isOwner: false,
   canWrite: false,
-  teamTags: [''],
   isShow: ModelType.MINE,
   appType: AppSortType.PERSON,
+  teamTags: [],
   edges: [],
   version: 'v2'
 };
